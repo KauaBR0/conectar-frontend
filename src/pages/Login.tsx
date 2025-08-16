@@ -132,7 +132,6 @@ const Login: React.FC = () => {
             <h3 className="text-sm font-medium text-gray-700 mb-2">Credenciais de Demonstração:</h3>
             <div className="text-xs text-gray-600 space-y-1">
               <p><strong>Admin:</strong> admin@conectar.com / admin123</p>
-              <p><strong>Usuário:</strong> user@conectar.com / user123</p>
             </div>
           </div>
         </div>

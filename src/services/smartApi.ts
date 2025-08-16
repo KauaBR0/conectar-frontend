@@ -27,10 +27,66 @@ interface Client {
 }
 
 class MockApiService {
-  private users: User[] = [...mockUsers];
-  private clients: Client[] = [...mockClients];
-  private nextUserId = Math.max(...mockUsers.map(u => u.id)) + 1;
-  private nextClientId = Math.max(...mockClients.map(c => c.id)) + 1;
+  private users: User[] = [];
+  private clients: Client[] = [];
+  private nextUserId: number = 1;
+  private nextClientId: number = 1;
+
+  constructor() {
+    this.loadDataFromStorage();
+  }
+
+  // Carrega dados do localStorage ou usa dados padrão
+  private loadDataFromStorage() {
+    try {
+      // Carregar usuários
+      const storedUsers = localStorage.getItem('@Conectar:mockUsers');
+      if (storedUsers) {
+        this.users = JSON.parse(storedUsers);
+      } else {
+        this.users = [...mockUsers];
+        this.saveUsersToStorage();
+      }
+
+      // Carregar clientes
+      const storedClients = localStorage.getItem('@Conectar:mockClients');
+      if (storedClients) {
+        this.clients = JSON.parse(storedClients);
+      } else {
+        this.clients = [...mockClients];
+        this.saveClientsToStorage();
+      }
+
+      // Calcular próximos IDs
+      this.nextUserId = Math.max(...this.users.map(u => u.id)) + 1;
+      this.nextClientId = Math.max(...this.clients.map(c => c.id)) + 1;
+    } catch (error) {
+      console.error('Erro ao carregar dados do localStorage:', error);
+      // Fallback para dados padrão
+      this.users = [...mockUsers];
+      this.clients = [...mockClients];
+      this.nextUserId = Math.max(...mockUsers.map(u => u.id)) + 1;
+      this.nextClientId = Math.max(...mockClients.map(c => c.id)) + 1;
+    }
+  }
+
+  // Salva usuários no localStorage
+  private saveUsersToStorage() {
+    try {
+      localStorage.setItem('@Conectar:mockUsers', JSON.stringify(this.users));
+    } catch (error) {
+      console.error('Erro ao salvar usuários no localStorage:', error);
+    }
+  }
+
+  // Salva clientes no localStorage
+  private saveClientsToStorage() {
+    try {
+      localStorage.setItem('@Conectar:mockClients', JSON.stringify(this.clients));
+    } catch (error) {
+      console.error('Erro ao salvar clientes no localStorage:', error);
+    }
+  }
 
   // Métodos de autenticação
   async login(email: string, password: string) {
@@ -66,6 +122,7 @@ class MockApiService {
     };
 
     this.users.push(newUser);
+    this.saveUsersToStorage();
 
     return {
       user: newUser,
@@ -104,6 +161,7 @@ class MockApiService {
     };
 
     this.users[userIndex] = updatedUser;
+    this.saveUsersToStorage();
     return updatedUser;
   }
 
@@ -120,6 +178,7 @@ class MockApiService {
     }
 
     this.users.splice(userIndex, 1);
+    this.saveUsersToStorage();
     return { success: true, message: 'Usuário deletado com sucesso' };
   }
 
@@ -164,6 +223,7 @@ class MockApiService {
     };
 
     this.clients.push(newClient);
+    this.saveClientsToStorage();
     return newClient;
   }
 
@@ -187,6 +247,7 @@ class MockApiService {
     };
 
     this.clients[clientIndex] = updatedClient;
+    this.saveClientsToStorage();
     return updatedClient;
   }
 
@@ -203,7 +264,21 @@ class MockApiService {
     }
 
     this.clients.splice(clientIndex, 1);
+    this.saveClientsToStorage();
     return { success: true, message: 'Cliente deletado com sucesso' };
+  }
+
+  // Método para resetar dados para o estado inicial
+  resetToDefaultData() {
+    this.users = [...mockUsers];
+    this.clients = [...mockClients];
+    this.nextUserId = Math.max(...mockUsers.map(u => u.id)) + 1;
+    this.nextClientId = Math.max(...mockClients.map(c => c.id)) + 1;
+    
+    this.saveUsersToStorage();
+    this.saveClientsToStorage();
+    
+    return { success: true, message: 'Dados resetados para o estado inicial' };
   }
 
   // Sempre retorna true pois estamos sempre usando mock

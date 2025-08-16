@@ -148,8 +148,6 @@ describe('Login Component', () => {
     
     expect(screen.getByText('Credenciais de Demonstração:')).toBeInTheDocument();
     expect(screen.getByText(/Admin:/)).toBeInTheDocument();
-    expect(screen.getByText(/Usuário:/)).toBeInTheDocument();
     expect(screen.getByText(/admin@conectar.com/)).toBeInTheDocument();
-    expect(screen.getByText(/user@conectar.com/)).toBeInTheDocument();
   });
 });

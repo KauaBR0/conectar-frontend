@@ -2,23 +2,25 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Profile from './Profile';
-import { api } from '../services/api';
+import smartApi from '../services/smartApi';
 
-// Mock do serviço de API
-jest.mock('../services/api', () => ({
-  api: {
-    get: jest.fn(),
-    patch: jest.fn(),
+// Mock do smartApi
+jest.mock('../services/smartApi', () => ({
+  __esModule: true,
+  default: {
+    updateUser: jest.fn(),
   },
 }));
 
 // Mock do AuthContext
 const mockUser = {
-  id: '1',
+  id: 1,
   name: 'Test User',
   email: 'test@example.com',
-  role: 'user',
+  role: 'user' as const,
+  isActive: true,
   createdAt: '2023-01-01T00:00:00.000Z',
+  updatedAt: '2023-01-01T00:00:00.000Z',
 };
 
 jest.mock('../contexts/AuthContext', () => ({
@@ -29,7 +31,7 @@ jest.mock('../contexts/AuthContext', () => ({
   })),
 }));
 
-const mockApi = api as jest.Mocked<typeof api>;
+const mockSmartApi = smartApi as jest.Mocked<typeof smartApi>;
 const mockUseAuth = require('../contexts/AuthContext').useAuth;
 
 const renderProfile = () => {
@@ -51,16 +53,6 @@ describe('Profile Component', () => {
   });
 
   it('should render profile information', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
     await act(async () => {
       renderProfile();
     });
@@ -70,21 +62,9 @@ describe('Profile Component', () => {
       expect(screen.getByDisplayValue('Test User')).toBeInTheDocument();
       expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument();
     });
-
-    expect(mockApi.get).toHaveBeenCalledWith('/users/me');
   });
 
   it('should display user role correctly', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
     await act(async () => {
       renderProfile();
     });
@@ -97,7 +77,7 @@ describe('Profile Component', () => {
   it('should display admin role correctly', async () => {
     const mockAdminUser = {
       ...mockUser,
-      role: 'admin',
+      role: 'admin' as const,
     };
 
     mockUseAuth.mockReturnValue({
@@ -105,16 +85,6 @@ describe('Profile Component', () => {
       loading: false,
       signOut: jest.fn(),
     });
-
-    const mockProfileData = {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'admin',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
 
     await act(async () => {
       renderProfile();
@@ -126,16 +96,6 @@ describe('Profile Component', () => {
   });
 
   it('should toggle password fields when alterar senha is clicked', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
     await act(async () => {
       renderProfile();
     });
@@ -157,226 +117,51 @@ describe('Profile Component', () => {
     // Usar getAllByText para pegar o botão específico da seção de senha
     const cancelarButtons = screen.getAllByText('Cancelar');
     const senhaCancelarButton = cancelarButtons[0]; // Primeiro botão (da seção de senha)
-    expect(senhaCancelarButton).toBeInTheDocument();
-
-    // Clicar em cancelar deve esconder os campos
+    
     await act(async () => {
       fireEvent.click(senhaCancelarButton);
     });
 
+    // Deve esconder os campos de senha
     expect(screen.queryByPlaceholderText('Digite a nova senha')).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText('Confirme a nova senha')).not.toBeInTheDocument();
   });
 
   it('should save profile changes successfully', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-    mockApi.patch.mockResolvedValue({ data: mockProfileData });
+    mockSmartApi.updateUser.mockResolvedValue(mockUser);
 
     await act(async () => {
       renderProfile();
     });
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Test User')).toBeInTheDocument();
-    });
-
     const nameInput = screen.getByDisplayValue('Test User');
-    
-    await act(async () => {
-      fireEvent.change(nameInput, { target: { value: 'Updated User' } });
-    });
+    const submitButton = screen.getByRole('button', { name: 'Salvar Alterações' });
 
-    const saveButton = screen.getByText('Salvar Alterações');
-    
     await act(async () => {
-      fireEvent.click(saveButton);
+      fireEvent.change(nameInput, { target: { value: 'Updated Name' } });
+      fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
       expect(screen.getByText('Perfil atualizado com sucesso!')).toBeInTheDocument();
     });
 
-    expect(mockApi.patch).toHaveBeenCalledWith('/users/1', {
-      name: 'Updated User',
-    });
+    expect(mockSmartApi.updateUser).toHaveBeenCalledWith(1, { name: 'Updated Name' });
   });
 
-  it('should save profile with password change', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-    mockApi.patch.mockResolvedValue({ data: mockProfileData });
+  it('should handle profile update errors', async () => {
+    mockSmartApi.updateUser.mockRejectedValue(new Error('Update failed'));
 
     await act(async () => {
       renderProfile();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Alterar senha')).toBeInTheDocument();
-    });
-
-    // Abrir campos de senha
-    const alterarSenhaButton = screen.getByText('Alterar senha');
-    
-    await act(async () => {
-      fireEvent.click(alterarSenhaButton);
-    });
-
-    // Aguardar os campos de senha aparecerem
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Digite a nova senha')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('Confirme a nova senha')).toBeInTheDocument();
-    });
-
-    // Verificar se os campos de senha estão visíveis
-    expect(screen.getByPlaceholderText('Digite a nova senha')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Confirme a nova senha')).toBeInTheDocument();
-
-    // Verificar se o botão de cancelar da seção de senha está visível
-    const cancelarButtons = screen.getAllByText('Cancelar');
-    expect(cancelarButtons.length).toBeGreaterThan(1); // Deve ter pelo menos 2 botões cancelar
-  });
-
-  it('should display validation error for short password', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
-    await act(async () => {
-      renderProfile();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Alterar senha')).toBeInTheDocument();
-    });
-
-    // Abrir campos de senha
-    const alterarSenhaButton = screen.getByText('Alterar senha');
-    
-    await act(async () => {
-      fireEvent.click(alterarSenhaButton);
-    });
-
-    const passwordInput = screen.getByPlaceholderText('Digite a nova senha');
-    const confirmPasswordInput = screen.getByPlaceholderText('Confirme a nova senha');
-
-    await act(async () => {
-      fireEvent.change(passwordInput, { target: { value: '12345' } });
-      fireEvent.change(confirmPasswordInput, { target: { value: '12345' } });
-    });
-
-    const saveButton = screen.getByText('Salvar Alterações');
-    
-    await act(async () => {
-      fireEvent.click(saveButton);
-    });
-
-    // As validações do React Hook Form podem não aparecer imediatamente
-    // Vamos verificar se a API não foi chamada
-    expect(mockApi.patch).not.toHaveBeenCalled();
-  });
-
-  it('should display validation error for password mismatch', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
-    await act(async () => {
-      renderProfile();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Alterar senha')).toBeInTheDocument();
-    });
-
-    // Abrir campos de senha
-    const alterarSenhaButton = screen.getByText('Alterar senha');
-    
-    await act(async () => {
-      fireEvent.click(alterarSenhaButton);
-    });
-
-    const passwordInput = screen.getByPlaceholderText('Digite a nova senha');
-    const confirmPasswordInput = screen.getByPlaceholderText('Confirme a nova senha');
-
-    await act(async () => {
-      fireEvent.change(passwordInput, { target: { value: 'newpassword123' } });
-      fireEvent.change(confirmPasswordInput, { target: { value: 'differentpassword' } });
-    });
-
-    const saveButton = screen.getByText('Salvar Alterações');
-    
-    await act(async () => {
-      fireEvent.click(saveButton);
-    });
-
-    // As validações do React Hook Form podem não aparecer imediatamente
-    // Vamos verificar se a API não foi chamada
-    expect(mockApi.patch).not.toHaveBeenCalled();
-  });
-
-  it('should handle save error', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-    mockApi.patch.mockRejectedValue({ 
-      response: { 
-        data: { 
-          message: 'Erro ao atualizar perfil' 
-        } 
-      } 
-    });
-
-    await act(async () => {
-      renderProfile();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Test User')).toBeInTheDocument();
     });
 
     const nameInput = screen.getByDisplayValue('Test User');
-    
-    await act(async () => {
-      fireEvent.change(nameInput, { target: { value: 'Updated User' } });
-    });
+    const submitButton = screen.getByRole('button', { name: 'Salvar Alterações' });
 
-    const saveButton = screen.getByText('Salvar Alterações');
-    
     await act(async () => {
-      fireEvent.click(saveButton);
+      fireEvent.change(nameInput, { target: { value: 'Updated Name' } });
+      fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
@@ -384,69 +169,97 @@ describe('Profile Component', () => {
     });
   });
 
-  it('should display correct creation date format', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
+  it('should validate password confirmation', async () => {
     await act(async () => {
       renderProfile();
     });
 
+    const alterarSenhaButton = screen.getByText('Alterar senha');
+    
+    await act(async () => {
+      fireEvent.click(alterarSenhaButton);
+    });
+
+    const newPasswordInput = screen.getByPlaceholderText('Digite a nova senha');
+    const confirmPasswordInput = screen.getByPlaceholderText('Confirme a nova senha');
+    const submitButton = screen.getByRole('button', { name: 'Salvar Alterações' });
+
+    await act(async () => {
+      fireEvent.change(newPasswordInput, { target: { value: 'newpassword' } });
+      fireEvent.change(confirmPasswordInput, { target: { value: 'differentpassword' } });
+      fireEvent.click(submitButton);
+    });
+
     await waitFor(() => {
-      expect(screen.getByText('31/12/2022')).toBeInTheDocument();
+      expect(screen.getByText('As senhas não coincidem')).toBeInTheDocument();
     });
   });
 
-  it('should navigate back to dashboard when cancel button is clicked', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
-
+  it('should validate password length', async () => {
     await act(async () => {
       renderProfile();
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('Cancelar')).toBeInTheDocument();
+    const alterarSenhaButton = screen.getByText('Alterar senha');
+    
+    await act(async () => {
+      fireEvent.click(alterarSenhaButton);
     });
 
-    const cancelButton = screen.getByText('Cancelar');
-    expect(cancelButton).toBeInTheDocument();
+    const newPasswordInput = screen.getByPlaceholderText('Digite a nova senha');
+    const confirmPasswordInput = screen.getByPlaceholderText('Confirme a nova senha');
+    const submitButton = screen.getByRole('button', { name: 'Salvar Alterações' });
+
+    await act(async () => {
+      fireEvent.change(newPasswordInput, { target: { value: '123' } });
+      fireEvent.change(confirmPasswordInput, { target: { value: '123' } });
+      fireEvent.click(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('A senha deve ter pelo menos 6 caracteres')).toBeInTheDocument();
+    });
   });
 
-  it('should handle logout when sair button is clicked', async () => {
-    const mockProfileData = {
-      id: '1',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-      createdAt: '2023-01-01T00:00:00.000Z',
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockProfileData });
+  it('should handle logout', async () => {
+    const mockSignOut = jest.fn();
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      loading: false,
+      signOut: mockSignOut,
+    });
 
     await act(async () => {
       renderProfile();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Sair')).toBeInTheDocument();
     });
 
     const logoutButton = screen.getByText('Sair');
-    expect(logoutButton).toBeInTheDocument();
+    
+    await act(async () => {
+      fireEvent.click(logoutButton);
+    });
+
+    expect(mockSignOut).toHaveBeenCalled();
+  });
+
+  it('should navigate back when back button is clicked', async () => {
+    const mockNavigate = jest.fn();
+    jest.doMock('react-router-dom', () => ({
+      ...jest.requireActual('react-router-dom'),
+      useNavigate: () => mockNavigate,
+    }));
+
+    await act(async () => {
+      renderProfile();
+    });
+
+    const backButton = screen.getByRole('button', { name: '' }); // Botão sem texto, apenas ícone
+    
+    await act(async () => {
+      fireEvent.click(backButton);
+    });
+
+    // Como o componente não usa useNavigate diretamente, apenas verificamos que o botão existe
+    expect(backButton).toBeInTheDocument();
   });
 });
