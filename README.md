@@ -216,9 +216,9 @@ console.log('Clients:', localStorage.getItem('@Conectar:mockClients'));
 
 ## 📚 **Documentação Adicional**
 
-- [📖 Arquitetura](../docs/ARQUITETURA.md)
-- [🔧 Instalação](../docs/INSTALACAO.md)
-- [🧪 Testes](../docs/TESTES.md)
+- [📖 Arquitetura](./ARQUITETURA.md)
+- [🔧 Instalação](./INSTALACAO.md)
+- [🧪 Testes](./TESTES.md)
 
 ## 🤝 **Contribuição**
 
