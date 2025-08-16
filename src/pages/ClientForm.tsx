@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Save, User, Building, MapPin } from 'lucide-react';
-import { api } from '../services/api';
+import smartApi from '../services/smartApi';
 
 interface ClientFormData {
   facadeName: string;
@@ -65,9 +65,8 @@ const ClientForm: React.FC = () => {
   const loadClient = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/clients/${id}`);
-      const clientData = response.data as Partial<ClientFormData> & Record<string, any>;
-      setClient(clientData as ClientFormData);
+      const clientData = await smartApi.getClient(parseInt(id!));
+      setClient(clientData as any);
       
       // Preencher SOMENTE campos conhecidos do formulário
       const allowedKeys: (keyof ClientFormData)[] = [
@@ -88,8 +87,8 @@ const ClientForm: React.FC = () => {
       ];
 
       allowedKeys.forEach((key) => {
-        if (clientData[key] !== undefined && clientData[key] !== null) {
-          setValue(key, clientData[key] as any);
+        if ((clientData as any)[key] !== undefined && (clientData as any)[key] !== null) {
+          setValue(key, (clientData as any)[key] as any);
         }
       });
     } catch (error) {
@@ -132,9 +131,9 @@ const ClientForm: React.FC = () => {
       }
 
       if (isEditing) {
-        await api.patch(`/clients/${id}`, cleanData);
+        await smartApi.updateClient(parseInt(id!), cleanData);
       } else {
-        await api.post('/clients', cleanData);
+        await smartApi.createClient(cleanData);
       }
       
       navigate('/dashboard');

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '../services/api';
+import smartApi from '../services/smartApi';
 
 interface User {
   id: string;
@@ -32,7 +32,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const userData = localStorage.getItem('@Conectar:user');
 
     if (token && userData) {
-      api.defaults.headers.authorization = `Bearer ${token}`;
       setUser(JSON.parse(userData));
     }
 
@@ -41,13 +40,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
-      const { access_token, user: userData } = response.data;
+      const response = await smartApi.login(email, password);
+      const { token, user: userData } = response as any;
 
-      localStorage.setItem('@Conectar:token', access_token);
+      localStorage.setItem('@Conectar:token', token);
       localStorage.setItem('@Conectar:user', JSON.stringify(userData));
 
-      api.defaults.headers.authorization = `Bearer ${access_token}`;
       setUser(userData);
     } catch (error) {
       throw new Error('Credenciais inválidas');
@@ -58,7 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('@Conectar:token');
     localStorage.removeItem('@Conectar:user');
     setUser(null);
-    delete api.defaults.headers.authorization;
   };
 
   return (

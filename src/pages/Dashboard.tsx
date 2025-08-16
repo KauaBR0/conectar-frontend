@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, ChevronUp, ChevronDown, HelpCircle, Bell, LogOut, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../services/api';
+import smartApi from '../services/smartApi';
 
 interface Client {
 	id: string;
@@ -35,15 +35,33 @@ const Dashboard: React.FC = () => {
 	const loadClients = async () => {
 		try {
 			setLoading(true);
-			const params = new URLSearchParams();
+			const clientsData = await smartApi.getClients();
 			
-			if (filters.name) params.append('name', filters.name);
-			if (filters.cnpj) params.append('cnpj', filters.cnpj);
-			if (filters.status) params.append('status', filters.status);
-			if (filters.conectaPlus) params.append('conectaPlus', filters.conectaPlus);
-
-			const response = await api.get(`/clients?${params.toString()}`);
-			setClients(response.data);
+			// Aplicar filtros localmente
+			let filteredClients = clientsData as any;
+			
+			if (filters.name) {
+				filteredClients = filteredClients.filter((client: any) => 
+					client.facadeName.toLowerCase().includes(filters.name.toLowerCase())
+				);
+			}
+			if (filters.cnpj) {
+				filteredClients = filteredClients.filter((client: any) => 
+					client.cnpj.includes(filters.cnpj)
+				);
+			}
+			if (filters.status) {
+				filteredClients = filteredClients.filter((client: any) => 
+					client.status === filters.status
+				);
+			}
+			if (filters.conectaPlus) {
+				filteredClients = filteredClients.filter((client: any) => 
+					client.conectaPlus === filters.conectaPlus
+				);
+			}
+			
+			setClients(filteredClients);
 		} catch (error) {
 			console.error('Erro ao carregar clientes:', error);
 		} finally {
