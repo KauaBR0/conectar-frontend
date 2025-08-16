@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import smartApi from '../services/smartApi';
 
 interface Client {
-	id: string;
+	id: number;
 	facadeName: string;
 	cnpj: string;
 	companyName: string;

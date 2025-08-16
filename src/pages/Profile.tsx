@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Save, User, Mail, Calendar, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../services/api';
+import smartApi from '../services/smartApi';
 
 interface ProfileFormData {
 	name: string;
@@ -38,16 +38,17 @@ const Profile: React.FC = () => {
 	useEffect(() => {
 		const fetchMe = async () => {
 			try {
-				const res = await api.get('/users/me');
-				const me = res.data;
-				setCreatedAt(me.createdAt);
-				reset({ name: me.name, email: me.email, currentPassword: '', newPassword: '', confirmPassword: '' });
+				// Usar dados do usuário logado
+				if (user) {
+					setCreatedAt(user.createdAt || new Date().toISOString());
+					reset({ name: user.name, email: user.email, currentPassword: '', newPassword: '', confirmPassword: '' });
+				}
 			} catch (e) {
 				// silencioso
 			}
 		};
 		fetchMe();
-	}, [reset]);
+	}, [reset, user]);
 
 	const newPassword = watch('newPassword');
 
@@ -77,7 +78,7 @@ const Profile: React.FC = () => {
 				updateData.password = data.newPassword;
 			}
 
-			await api.patch(`/users/${user?.id}`, updateData);
+			await smartApi.updateUser(user?.id || 0, updateData);
 			setMessage('Perfil atualizado com sucesso!');
 			setShowPasswordFields(false);
 		} catch (error: any) {

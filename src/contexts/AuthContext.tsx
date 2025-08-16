@@ -2,10 +2,13 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import smartApi from '../services/smartApi';
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: 'admin' | 'user';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextData {

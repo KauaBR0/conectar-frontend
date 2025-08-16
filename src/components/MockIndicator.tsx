@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { Database } from 'lucide-react';
 
 interface MockIndicatorProps {
   isUsingMock: boolean;
@@ -11,21 +11,21 @@ const MockIndicator: React.FC<MockIndicatorProps> = ({ isUsingMock, onRetry }) =
 
   return (
     <div className="fixed top-4 right-4 z-50">
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 shadow-lg max-w-sm">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-lg max-w-sm">
         <div className="flex items-start space-x-3">
-          <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <Database className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="text-sm font-medium text-yellow-800">
-              Modo Offline
+            <h3 className="text-sm font-medium text-blue-800">
+              Modo Demo
             </h3>
-            <p className="text-sm text-yellow-700 mt-1">
-              O backend não está disponível. Usando dados simulados para demonstração.
+            <p className="text-sm text-blue-700 mt-1">
+              Usando dados simulados para demonstração. Todas as funcionalidades funcionam offline.
             </p>
             <button
               onClick={onRetry}
-              className="mt-2 text-sm text-yellow-800 hover:text-yellow-900 underline"
+              className="mt-2 text-sm text-blue-800 hover:text-blue-900 underline"
             >
-              Tentar reconectar
+              Recarregar dados
             </button>
           </div>
         </div>

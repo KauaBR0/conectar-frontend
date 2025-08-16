@@ -4,7 +4,7 @@ export const mockUsers = [
     id: 1,
     name: 'Admin User',
     email: 'admin@conectar.com',
-    role: 'admin',
+    role: 'admin' as const,
     isActive: true,
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-15T10:00:00Z'
@@ -13,7 +13,7 @@ export const mockUsers = [
     id: 2,
     name: 'João Silva',
     email: 'joao@conectar.com',
-    role: 'user',
+    role: 'user' as const,
     isActive: true,
     createdAt: '2024-01-16T14:30:00Z',
     updatedAt: '2024-01-16T14:30:00Z'
@@ -22,7 +22,7 @@ export const mockUsers = [
     id: 3,
     name: 'Maria Santos',
     email: 'maria@conectar.com',
-    role: 'user',
+    role: 'user' as const,
     isActive: false,
     createdAt: '2024-01-17T09:15:00Z',
     updatedAt: '2024-01-17T09:15:00Z'
@@ -31,7 +31,7 @@ export const mockUsers = [
 
 export const mockClients = [
   {
-    id: '1',
+    id: 1,
     facadeName: 'Empresa ABC Ltda',
     cnpj: '12.345.678/0001-90',
     companyName: 'Empresa ABC Comércio e Serviços Ltda',
@@ -44,7 +44,7 @@ export const mockClients = [
     updatedAt: '2024-01-15T16:30:00Z'
   },
   {
-    id: '2',
+    id: 2,
     facadeName: 'Tech Solutions',
     cnpj: '98.765.432/0001-10',
     companyName: 'Tech Solutions Tecnologia Ltda',
@@ -57,7 +57,7 @@ export const mockClients = [
     updatedAt: '2024-01-14T11:45:00Z'
   },
   {
-    id: '3',
+    id: 3,
     facadeName: 'Consultoria XYZ',
     cnpj: '11.222.333/0001-44',
     companyName: 'Consultoria XYZ Assessoria Empresarial Ltda',
@@ -70,7 +70,7 @@ export const mockClients = [
     updatedAt: '2024-01-13T09:10:00Z'
   },
   {
-    id: '4',
+    id: 4,
     facadeName: 'Startup Inovação',
     cnpj: '55.666.777/0001-88',
     companyName: 'Startup Inovação Tecnológica Ltda',

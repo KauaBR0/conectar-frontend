@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import smartApi from '../services/smartApi';
+import React, { createContext, useContext, ReactNode } from 'react';
 
 interface MockContextData {
   isUsingMock: boolean;
@@ -14,30 +13,14 @@ interface MockProviderProps {
 }
 
 export const MockProvider: React.FC<MockProviderProps> = ({ children }) => {
-  const [isUsingMock, setIsUsingMock] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Sempre usando mock, não há backend
+  const isUsingMock = true;
+  const loading = false;
 
   const checkBackendStatus = async () => {
-    try {
-      setLoading(true);
-      const isOnline = await smartApi.forceBackendCheck();
-      setIsUsingMock(!isOnline);
-    } catch (error) {
-      console.error('Erro ao verificar status do backend:', error);
-      setIsUsingMock(true);
-    } finally {
-      setLoading(false);
-    }
+    // Não faz nada, sempre usa mock
+    console.log('Sempre usando dados mockados - sem backend');
   };
-
-  useEffect(() => {
-    checkBackendStatus();
-    
-    // Verificar a cada 30 segundos
-    const interval = setInterval(checkBackendStatus, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <MockContext.Provider
