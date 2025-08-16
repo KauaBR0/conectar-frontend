@@ -32,8 +32,11 @@ npm start
 ### **3. Build de Produção**
 
 ```bash
-# Gerar build otimizado
+# Build com ESLint (desenvolvimento)
 npm run build
+
+# Build sem ESLint (produção - mais rápido)
+npm run build:prod
 
 # Testar build localmente
 npm install -g serve
