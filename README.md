@@ -2,6 +2,8 @@
 
 Interface React moderna para o sistema de gestão de clientes da Conéctar, com funcionalidades offline e persistência local.
 
+Teste aqui -> https://thriving-kashata-51f6d3.netlify.app/login
+
 ## 🚀 **Execução Local**
 
 ### **Pré-requisitos**
